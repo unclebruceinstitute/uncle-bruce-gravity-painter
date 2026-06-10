@@ -1,0 +1,15 @@
+{
+  "name": "重力畫師 - Gravity Painter",
+  "short_name": "重力畫師",
+  "description": "畫引力場引導粒子到目標的物理解謎遊戲",
+  "start_url": "/uncle-bruce-gravity-painter/index.html",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#0a0a2e",
+  "theme_color": "#4fc3f7",
+  "lang": "zh-Hant",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
