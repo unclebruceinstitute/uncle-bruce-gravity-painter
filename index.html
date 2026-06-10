@@ -2,11 +2,10 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>重力畫師 | Gravity Painter</title>
 <meta name="theme-color" content="#0a0a2e">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>
@@ -14,445 +13,427 @@
 body{font-family:-apple-system,sans-serif;background:#0a0a2e;color:#fff;overflow:hidden;height:100vh;touch-action:none}
 canvas{display:block;cursor:crosshair}
 
-/* HUD */
-.hud{position:fixed;top:0;left:0;right:0;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(10,10,46,0.95),transparent);z-index:10}
-.hud-left{display:flex;align-items:center;gap:12px}
-.hud-right{display:flex;align-items:center;gap:8px}
-.level-badge{background:linear-gradient(135deg,#4fc3f7,#0288d1);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
-.wells-count{font-size:13px;color:#8890b5}
-.wells-count span{color:#4fc3f7;font-weight:700}
+.hud{position:fixed;top:0;left:0;right:0;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(10,10,46,0.95),transparent);z-index:10}
+.hud-left{display:flex;align-items:center;gap:10px}
+.level-badge{background:linear-gradient(135deg,#4fc3f7,#0288d1);padding:5px 12px;border-radius:16px;font-size:12px;font-weight:700}
+.info-tag{font-size:11px;color:#8890b5;padding:4px 8px;background:rgba(255,255,255,0.05);border-radius:6px}
+.info-tag span{color:#4fc3f7;font-weight:700}
 
-/* TOOLBAR */
-.toolbar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:10px;background:rgba(10,10,46,0.9);border:1px solid #2a2a6e;border-radius:16px;padding:10px 16px;z-index:10;backdrop-filter:blur(8px)}
-.tool-btn{width:50px;height:50px;border-radius:12px;border:2px solid #2a2a6e;background:rgba(255,255,255,0.05);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all 0.2s;font-size:20px}
-.tool-btn span{font-size:9px;color:#8890b5}
-.tool-btn.active{border-color:#4fc3f7;background:rgba(79,195,247,0.15);box-shadow:0 0 15px rgba(79,195,247,0.3)}
-.tool-btn:hover:not(.active){border-color:#556}
+.toolbar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(10,10,46,0.92);border:1px solid #2a2a6e;border-radius:14px;padding:8px 12px;z-index:10;backdrop-filter:blur(8px)}
+.tool-btn{width:46px;height:46px;border-radius:10px;border:2px solid #2a2a6e;background:rgba(255,255,255,0.03);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all 0.15s;font-size:18px}
+.tool-btn span{font-size:8px;color:#8890b5;margin-top:1px}
+.tool-btn.active{border-color:#4fc3f7;background:rgba(79,195,247,0.12);box-shadow:0 0 12px rgba(79,195,247,0.25)}
+.tool-btn.locked{opacity:0.25;pointer-events:none}
+.tool-btn:hover:not(.active):not(.locked){border-color:#556}
 
-/* ACTION BUTTONS */
-.action-bar{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:10}
-.action-btn{padding:10px 24px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
-.btn-play{background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff}
-.btn-play:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(76,175,80,0.4)}
-.btn-reset{background:rgba(255,255,255,0.1);color:#fff;border:1px solid #556}
-.btn-reset:hover{border-color:#4fc3f7}
-.btn-clear{background:rgba(244,67,54,0.2);color:#f44336;border:1px solid rgba(244,67,54,0.3)}
-.btn-clear:hover{background:rgba(244,67,54,0.3)}
-.btn-undo{background:rgba(255,255,255,0.1);color:#fff;border:1px solid #556}
+.action-bar{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10}
+.act-btn{padding:8px 18px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}
+.btn-go{background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff}
+.btn-go:hover{transform:scale(1.04);box-shadow:0 0 15px rgba(76,175,80,0.4)}
+.btn-go.running{background:linear-gradient(135deg,#f44336,#c62828)}
+.btn-secondary{background:rgba(255,255,255,0.08);color:#ccc;border:1px solid #444}
 
-/* MENU */
-.menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(8px)}
+.strength-bar{position:fixed;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:10}
+.str-val{font-size:11px;color:#4fc3f7;font-weight:700}
+.str-slider{-webkit-appearance:none;width:5px;height:100px;background:#2a2a6e;border-radius:3px;outline:none;writing-mode:vertical-lr;direction:rtl}
+.str-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:#4fc3f7;border-radius:50%;cursor:pointer}
+
+.menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(8px)}
 .menu-overlay.hide{display:none}
-.menu-box{background:linear-gradient(135deg,#0d0d3a,#1a1a5e);border:2px solid #4fc3f7;border-radius:24px;padding:40px;text-align:center;max-width:420px;width:90%;box-shadow:0 0 60px rgba(79,195,247,0.2)}
-.menu-box h1{font-size:36px;margin-bottom:4px;background:linear-gradient(135deg,#4fc3f7,#e040fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.menu-box .subtitle{color:#8890b5;font-size:14px;margin-bottom:24px}
-.menu-box p{color:#8890b5;font-size:13px;line-height:1.8;margin-bottom:20px}
-.menu-btn{padding:14px 40px;background:linear-gradient(135deg,#4fc3f7,#0288d1);border:none;border-radius:12px;font-size:16px;font-weight:700;color:#fff;cursor:pointer;transition:all 0.2s;margin:4px}
-.menu-btn:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(79,195,247,0.4)}
-.menu-btn.secondary{background:rgba(255,255,255,0.1);border:1px solid #556}
+.menu-box{background:linear-gradient(135deg,#0d0d3a,#1a1a5e);border:2px solid #4fc3f7;border-radius:24px;padding:32px;text-align:center;max-width:480px;width:92%;box-shadow:0 0 60px rgba(79,195,247,0.15);max-height:90vh;overflow-y:auto}
+.menu-box h1{font-size:34px;background:linear-gradient(135deg,#4fc3f7,#e040fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.subtitle{color:#8890b5;font-size:13px;margin-bottom:20px}
+.menu-box p{color:#8890b5;font-size:12px;line-height:1.7;margin-bottom:16px}
+.menu-btn{padding:12px 32px;background:linear-gradient(135deg,#4fc3f7,#0288d1);border:none;border-radius:10px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;transition:all 0.2s;margin:3px}
+.menu-btn:hover{transform:scale(1.04);box-shadow:0 0 15px rgba(79,195,247,0.35)}
+.menu-btn.sec{background:rgba(255,255,255,0.08);border:1px solid #444;font-size:13px}
 
-/* LEVEL COMPLETE */
-.complete-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:100;flex-direction:column}
+.level-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:12px 0}
+.lvl-cell{padding:10px 4px;background:rgba(255,255,255,0.04);border:1px solid #2a2a6e;border-radius:8px;text-align:center;cursor:pointer;transition:all 0.15s;font-size:13px}
+.lvl-cell:hover{border-color:#4fc3f7}
+.lvl-cell.locked{opacity:0.2;pointer-events:none}
+.lvl-cell.current{border-color:#ffd700;background:rgba(255,215,0,0.1)}
+.lvl-cell .stars{font-size:10px;color:#ffd700}
+.lvl-cell .ch-num{font-size:10px;color:#8890b5}
+
+.complete-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:none;align-items:center;justify-content:center;z-index:200;flex-direction:column}
 .complete-overlay.show{display:flex}
-.complete-box{text-align:center;padding:40px}
-.complete-box h2{font-size:32px;color:#ffd700;margin-bottom:8px}
-.complete-box .stars{font-size:48px;margin:16px 0}
-.complete-box p{color:#8890b5;margin-bottom:24px}
+.complete-box{text-align:center;padding:36px;background:linear-gradient(135deg,#0d0d3a,#1a1a5e);border:2px solid #ffd700;border-radius:24px;box-shadow:0 0 50px rgba(255,215,0,0.15)}
+.complete-box h2{font-size:28px;color:#ffd700;margin-bottom:6px}
+.complete-box .big-stars{font-size:44px;margin:12px 0}
+.complete-box p{color:#8890b5;font-size:13px;margin-bottom:20px}
 
-/* TOOLTIP */
-.tooltip{position:fixed;bottom:160px;left:50%;transform:translateX(-50%);background:rgba(79,195,247,0.15);border:1px solid rgba(79,195,247,0.3);padding:8px 16px;border-radius:8px;font-size:13px;color:#4fc3f7;z-index:10;white-space:nowrap;pointer-events:none;transition:opacity 0.3s}
+.tip{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.2);padding:6px 14px;border-radius:8px;font-size:12px;color:#4fc3f7;z-index:10;white-space:nowrap;pointer-events:none}
 
-/* STRENGTH SLIDER */
-.strength-control{position:fixed;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:10}
-.strength-label{font-size:11px;color:#8890b5;writing-mode:vertical-lr}
-.strength-slider{-webkit-appearance:none;width:6px;height:120px;background:#2a2a6e;border-radius:3px;outline:none;writing-mode:vertical-lr;direction:rtl}
-.strength-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:#4fc3f7;border-radius:50%;cursor:pointer}
-.strength-val{font-size:12px;color:#4fc3f7;font-weight:700}
+@media(max-width:600px){
+.toolbar{gap:4px;padding:6px 8px}
+.tool-btn{width:40px;height:40px;font-size:16px}
+.action-bar{bottom:72px}
+.level-grid{grid-template-columns:repeat(5,1fr)}
+}
 </style>
 </head>
 <body>
+<canvas id="c"></canvas>
 
-<canvas id="gameCanvas"></canvas>
-
-<!-- HUD -->
 <div class="hud">
-<div class="left">
-<div class="level-badge" id="levelBadge">關卡 1</div>
-<div class="wells-count">引力場：<span id="wellsUsed">0</span>/<span id="wellsMax">3</span></div>
+<div class="hud-left">
+<div class="level-badge" id="lvl">第 1 關</div>
+<div class="info-tag">引力場：<span id="used">0</span>/<span id="max">3</span></div>
+<div class="info-tag">⭐ <span id="starCount">0</span></div>
 </div>
-<div class="hud-right">
-<button style="background:rgba(255,255,255,0.1);border:1px solid #556;color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer" onclick="showMenu()">☰</button>
-</div>
-</div>
-
-<!-- TOOLTIP -->
-<div class="tooltip" id="tooltip">點擊畫布放置引力場</div>
-
-<!-- STRENGTH -->
-<div class="strength-control" id="strengthCtrl">
-<div class="strength-val" id="strengthVal">50</div>
-<input type="range" class="strength-slider" id="strengthSlider" min="10" max="100" value="50" oninput="updateStrength()">
-<div class="strength-label">引力強度</div>
+<button style="background:rgba(255,255,255,0.08);border:1px solid #444;color:#fff;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer" onclick="showMenu()">☰</button>
 </div>
 
-<!-- TOOLBAR -->
+<div class="tip" id="tip">點擊畫布放置引力場</div>
+
+<div class="strength-bar">
+<div class="str-val" id="strVal">50</div>
+<input type="range" class="str-slider" id="strSlider" min="10" max="100" value="50" oninput="document.getElementById('strVal').textContent=this.value">
+<div style="font-size:9px;color:#8890b5;writing-mode:vertical-lr">強度</div>
+</div>
+
 <div class="toolbar">
-<button class="tool-btn active" id="toolAttract" onclick="setTool('attract')"><span>引力</span>🌀</button>
-<button class="tool-btn" id="toolRepel" onclick="setTool('repel')"><span>斥力</span>💥</button>
-<button class="tool-btn" id="toolOrbit" onclick="setTool('orbit')"><span>軌道</span>⭕</button>
-<button class="tool-btn" id="toolErase" onclick="setTool('erase')"><span>擦除</span>🗑️</button>
+<div class="tool-btn active" id="t0" onclick="setTool(0)"><span>引力</span>🌀</div>
+<div class="tool-btn" id="t1" onclick="setTool(1)"><span>斥力</span>💥</div>
+<div class="tool-btn" id="t2" onclick="setTool(2)"><span>軌道</span>⭕</div>
+<div class="tool-btn" id="t3" onclick="setTool(3)"><span>黑洞</span>🕳️</div>
+<div class="tool-btn" id="t4" onclick="setTool(4)"><span>蟲洞</span>🌀</div>
+<div class="tool-btn" id="t5" onclick="setTool(5)"><span>減速</span>⏳</div>
 </div>
 
-<!-- ACTIONS -->
 <div class="action-bar">
-<button class="action-btn btn-undo" onclick="undoField()">↩ 撤銷</button>
-<button class="action-btn btn-clear" onclick="clearFields()">✕ 清空</button>
-<button class="action-btn btn-reset" onclick="resetParticles()">↺ 重置</button>
-<button class="action-btn btn-play" id="playBtn" onclick="toggleSimulation()">▶ 開始</button>
+<button class="act-btn btn-secondary" onclick="undo()">↩</button>
+<button class="act-btn btn-secondary" onclick="clearAll()">✕</button>
+<button class="act-btn btn-secondary" onclick="resetP()">↺</button>
+<button class="act-btn btn-go" id="goBtn" onclick="toggleGo()">▶ 開始</button>
 </div>
 
-<!-- MENU -->
-<div class="menu-overlay" id="menuOverlay">
-<div class="menu-box">
+<div class="menu-overlay" id="menu">
+<div class="menu-box" id="menuBox">
 <h1>重力畫師</h1>
 <div class="subtitle">GRAVITY PAINTER</div>
-<p>🎨 畫引力場引導粒子到目標<br>🌀 引力場吸引粒子 ｜ 💥 斥力場推開粒子<br>⭕ 軌道場讓粒子環繞飛行<br>用最少嘅引力場完成關卡！</p>
+<p>🎨 畫引力場引導粒子到目標<br>🌀 引力吸引 ｜ 💥 斥力推開 ｜ ⭕ 軌道環繞<br>🕳️ 黑洞吞噬 ｜ 🌀 蟲洞傳送 ｜ ⏳ 減速區域<br>用最少引力場攞 ⭐⭐⭐！</p>
 <button class="menu-btn" onclick="startGame()">開始遊戲</button>
-<button class="menu-btn secondary" onclick="showLevelSelect()">選擇關卡</button>
+<button class="menu-btn sec" onclick="showLevels()">選擇關卡</button>
 </div>
 </div>
 
-<!-- LEVEL COMPLETE -->
-<div class="complete-overlay" id="completeOverlay">
+<div class="complete-overlay" id="win">
 <div class="complete-box">
 <h2>✨ 關卡完成！</h2>
-<div class="stars" id="starsDisplay">⭐⭐⭐</div>
-<p id="completeMsg">用咗 2 個引力場</p>
-<button class="menu-btn" onclick="nextLevel()">下一關 →</button>
-<button class="menu-btn secondary" onclick="showMenu()">返回選單</button>
+<div class="big-stars" id="winStars">⭐⭐⭐</div>
+<p id="winMsg"></p>
+<button class="menu-btn" onclick="nextLvl()">下一關 →</button>
+<button class="menu-btn sec" onclick="showMenu()">選單</button>
 </div>
 </div>
 
 <script>
 // === AUDIO ===
-let audioCtx=null;
-function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx}
+let ac=null;
+function A(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();return ac}
+function snd(f,d,t,v){const c=A(),o=c.createOscillator(),g=c.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d)}
+function sfxPlace(){snd(300,0.12,'sine',0.08);snd(450,0.1,'sine',0.05)}
+function sfxRepel(){snd(250,0.15,'sawtooth',0.06)}
+function sfxOrbit(){[300,450,600].forEach((f,i)=>setTimeout(()=>snd(f,0.12,'triangle',0.05),i*50))}
+function sfxBlack(){snd(80,0.3,'sawtooth',0.07);snd(60,0.4,'sine',0.05)}
+function sfxWorm(){[200,400,600,800].forEach((f,i)=>setTimeout(()=>snd(f,0.08,'sine',0.05),i*30))}
+function sfxSlow(){snd(500,0.2,'triangle',0.04)}
+function sfxCollect(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>snd(f,0.25,'sine',0.1),i*80))}
+function sfxWin(){[523,659,784,1047,784,1047,1319].forEach((f,i)=>setTimeout(()=>snd(f,0.35,'sine',0.1),i*120))}
+function sfxFail(){[300,250,200].forEach((f,i)=>setTimeout(()=>snd(f,0.3,'sawtooth',0.06),i*150))}
 
-function sfxPlace(){
-const c=getAudio();const o=c.createOscillator();const g=c.createGain();
-o.type='sine';o.frequency.setValueAtTime(200,c.currentTime);
-o.frequency.exponentialRampToValueAtTime(400,c.currentTime+0.15);
-g.gain.setValueAtTime(0.12,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.2);
-o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.2);
+// === STATE ===
+const cv=document.getElementById('c'),cx=cv.getContext('2d');
+let W,H,tool=0,fields=[],wormPairs=[],particles=[],targets=[];
+let running=false,simTick=0,curLvl=0,progress=[];
+try{progress=JSON.parse(localStorage.getItem('gp_progress'))||[]}catch(e){progress=[]}
+if(!progress.length)progress=Array(30).fill(0);
+
+function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight}
+addEventListener('resize',resize);resize();
+
+// === TOOLS ===
+const TOOL_NAMES=['引力場','斥力場','軌道場','黑洞','蟲洞','減速區'];
+function setTool(t){
+const unlockAt=[0,0,1,3,5,7];
+if(curLvl<unlockAt[t])return;
+tool=t;
+for(let i=0;i<6;i++)document.getElementById('t'+i).classList.toggle('active',i===t);
+document.getElementById('tip').textContent='放置'+TOOL_NAMES[t];
 }
 
-function sfxRepel(){
-const c=getAudio();const o=c.createOscillator();const g=c.createGain();
-o.type='sawtooth';o.frequency.setValueAtTime(300,c.currentTime);
-o.frequency.exponentialRampToValueAtTime(100,c.currentTime+0.15);
-g.gain.setValueAtTime(0.08,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.2);
-o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.2);
+function unlockTools(){
+const unlockAt=[0,0,1,3,5,7];
+for(let i=0;i<6;i++){
+const el=document.getElementById('t'+i);
+el.classList.toggle('locked',curLvl<unlockAt[i]);
+}
 }
 
-function sfxOrbit(){
-const c=getAudio();
-[300,450,600].forEach((f,i)=>{setTimeout(()=>{
-const o=c.createOscillator();const g=c.createGain();
-o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(0.06,c.currentTime);
-g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.15);
-o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.15);
-},i*60)});
+// === INPUT ===
+let dragging=false;
+cv.addEventListener('mousedown',e=>{dragging=true;place(e.clientX,e.clientY)});
+cv.addEventListener('mousemove',e=>{if(dragging)place(e.clientX,e.clientY)});
+cv.addEventListener('mouseup',()=>dragging=false);
+cv.addEventListener('touchstart',e=>{e.preventDefault();dragging=true;place(e.touches[0].clientX,e.touches[0].clientY)});
+cv.addEventListener('touchmove',e=>{e.preventDefault();if(dragging)place(e.touches[0].clientX,e.touches[0].clientY)});
+cv.addEventListener('touchend',()=>dragging=false);
+
+function place(mx,my){
+if(running)return;
+const L=LEVELS[curLvl];
+if(tool===4){
+// Wormhole: place in pairs
+if(wormPairs.length%2===0){
+wormPairs.push({x:mx,y:my});
+fields.push({x:mx,y:my,type:4,str:0});
+sfxWorm();
+}else{
+const first=wormPairs[wormPairs.length-1];
+wormPairs.push({x:mx,y:my});
+fields.push({x:mx,y:my,type:4,str:0,pairIdx:fields.length-1});
+// Link
+fields[fields.length-2].pairIdx=fields.length-1;
+sfxWorm();
+}
+return;
+}
+if(fields.filter(f=>f.type!==4).length>=L.maxFields)return;
+const str=+document.getElementById('strSlider').value;
+fields.push({x:mx,y:my,type:tool,str});
+if(tool===0)sfxPlace();else if(tool===1)sfxRepel();else if(tool===2)sfxOrbit();
+else if(tool===3)sfxBlack();else if(tool===5)sfxSlow();
 }
 
-function sfxCollect(){
-const c=getAudio();
-[523,659,784,1047].forEach((f,i)=>{setTimeout(()=>{
-const o=c.createOscillator();const g=c.createGain();
-o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0.15,c.currentTime);
-g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.3);
-o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.3);
-},i*100)});
-}
-
-function sfxWin(){
-const c=getAudio();
-[523,659,784,1047,784,1047,1319].forEach((f,i)=>{setTimeout(()=>{
-const o=c.createOscillator();const g=c.createGain();
-o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0.12,c.currentTime);
-g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.4);
-o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.4);
-},i*150)});
-}
-
-function sfxTick(){
-const c=getAudio();const o=c.createOscillator();const g=c.createGain();
-o.type='sine';o.frequency.value=800;g.gain.setValueAtTime(0.03,c.currentTime);
-g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.05);
-o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.05);
-}
-
-// === GAME STATE ===
-const canvas=document.getElementById('gameCanvas');
-const ctx=canvas.getContext('2d');
-let W,H;
-let currentLevel=0;
-let tool='attract';
-let fields=[];
-let particles=[];
-let targets=[];
-let running=false;
-let animId=null;
-let simTime=0;
-const MAX_SIM_TIME=600; // 10 seconds at 60fps
-
-function resize(){
-W=canvas.width=window.innerWidth;
-H=canvas.height=window.innerHeight;
-}
-window.addEventListener('resize',resize);
-resize();
+function undo(){if(running)return;fields.pop();wormPairs.pop?.()}
+function clearAll(){if(running)return;fields=[];wormPairs=[]}
 
 // === LEVELS ===
 const LEVELS=[
-// Level 1: Simple attract
-{name:"初識引力",maxFields:3,
-particles:[{x:0.2,y:0.5}],
-targets:[{x:0.8,y:0.5,r:30}]},
-// Level 2: Two particles
-{name:"雙子星",maxFields:4,
-particles:[{x:0.15,y:0.3},{x:0.15,y:0.7}],
-targets:[{x:0.85,y:0.3,r:25},{x:0.85,y:0.7,r:25}]},
-// Level 3: Around the corner
-{name:"轉角遇見你",maxFields:3,
-particles:[{x:0.2,y:0.8}],
-targets:[{x:0.8,y:0.2,r:30}]},
-// Level 4: Repeller needed
-{name:"反彈專家",maxFields:4,
-particles:[{x:0.5,y:0.1}],
-targets:[{x:0.5,y:0.9,r:30}]},
-// Level 5: Orbit challenge
-{name:"環繞飛行",maxFields:3,
-particles:[{x:0.2,y:0.5}],
-targets:[{x:0.8,y:0.5,r:25}]},
-// Level 6: Three targets
-{name:"三星連珠",maxFields:5,
-particles:[{x:0.5,y:0.5}],
-targets:[{x:0.2,y:0.2,r:20},{x:0.8,y:0.2,r:20},{x:0.5,y:0.85,r:20}]},
-// Level 7: Narrow path
-{name:"窄巷穿行",maxFields:4,
-particles:[{x:0.1,y:0.5}],
-targets:[{x:0.9,y:0.5,r:25}]},
-// Level 8: Multi-particle chaos
-{name:"群星亂舞",maxFields:6,
-particles:[{x:0.1,y:0.2},{x:0.1,y:0.5},{x:0.1,y:0.8}],
-targets:[{x:0.9,y:0.2,r:20},{x:0.9,y:0.5,r:20},{x:0.9,y:0.8,r:20}]},
-// Level 9: Precision
-{name:"精準控制",maxFields:3,
-particles:[{x:0.5,y:0.1}],
-targets:[{x:0.5,y:0.9,r:20}]},
-// Level 10: Grand finale
-{name:"重力大師",maxFields:8,
-particles:[{x:0.1,y:0.2},{x:0.1,y:0.5},{x:0.1,y:0.8},{x:0.3,y:0.5}],
-targets:[{x:0.9,y:0.15,r:18},{x:0.9,y:0.4,r:18},{x:0.9,y:0.65,r:18},{x:0.9,y:0.85,r:18}]}
+// Chapter 1: Basics (0-4)
+{name:"初識引力",ch:1,maxFields:3,desc:"用引力場引導粒子到目標",
+pts:[{x:.2,y:.5}],tgts:[{x:.8,y:.5,r:28}]},
+{name:"雙子星",ch:1,maxFields:4,desc:"同時引導兩個粒子",
+pts:[{x:.15,y:.3},{x:.15,y:.7}],tgts:[{x:.85,y:.3,r:24},{x:.85,y:.7,r:24}]},
+{name:"反彈專家",ch:1,maxFields:3,desc:"用斥力場改變方向",
+pts:[{x:.5,y:.15}],tgts:[{x:.5,y:.85,r:28}]},
+{name:"轉角遇見你",ch:1,maxFields:4,desc:"繞過障礙到達目標",
+pts:[{x:.15,y:.8}],tgts:[{x:.85,y:.15,r:26}]},
+{name:"三星連珠",ch:1,maxFields:5,desc:"一個粒子到三個目標",
+pts:[{x:.5,y:.5}],tgts:[{x:.2,y:.2,r:18},{x:.8,y:.2,r:18},{x:.5,y:.85,r:18}]},
+
+// Chapter 2: Orbits (5-9)
+{name:"環繞飛行",ch:2,maxFields:3,desc:"用軌道場讓粒子環繞",
+pts:[{x:.2,y:.5}],tgts:[{x:.8,y:.5,r:26}]},
+{name:"螺旋之路",ch:2,maxFields:4,desc:"螺旋軌道到達目標",
+pts:[{x:.3,y:.15}],tgts:[{x:.7,y:.85,r:24}]},
+{name:"雙軌道",ch:2,maxFields:5,desc:"兩個粒子走唔同軌道",
+pts:[{x:.2,y:.3},{x:.2,y:.7}],tgts:[{x:.8,y:.7,r:22},{x:.8,y:.3,r:22}]},
+{name:"行星系統",ch:2,maxFields:4,desc:"模擬行星軌道",
+pts:[{x:.3,y:.5}],tgts:[{x:.7,y:.2,r:20},{x:.7,y:.8,r:20}]},
+{name:"軌道大師",ch:2,maxFields:5,desc:"精準控制軌道",
+pts:[{x:.15,y:.5}],tgts:[{x:.85,y:.5,r:20}]},
+
+// Chapter 3: Black Holes (10-14)
+{name:"黑洞初體驗",ch:3,maxFields:3,desc:"黑洞會吞噬一切",
+pts:[{x:.2,y:.5}],tgts:[{x:.8,y:.5,r:28}]},
+{name:"黑洞彈弓",ch:3,maxFields:4,desc:"利用黑洞引力彈射",
+pts:[{x:.2,y:.2}],tgts:[{x:.8,y:.8,r:24}]},
+{name:"雙黑洞",ch:3,maxFields:5,desc:"兩個黑洞嘅引力場",
+pts:[{x:.5,y:.1}],tgts:[{x:.5,y:.9,r:22}]},
+{name:"黑洞迷宮",ch:3,maxFields:5,desc:"穿過黑洞區域",
+pts:[{x:.1,y:.5}],tgts:[{x:.9,y:.5,r:22}]},
+{name:"引力井",ch:3,maxFields:4,desc:"精準控制引力強度",
+pts:[{x:.5,y:.1}],tgts:[{x:.5,y:.9,r:20}]},
+
+// Chapter 4: Wormholes (15-19)
+{name:"蟲洞初體驗",ch:4,maxFields:4,desc:"蟲洞可以傳送粒子",
+pts:[{x:.2,y:.5}],tgts:[{x:.8,y:.5,r:26}]},
+{name:"跨維度",ch:4,maxFields:5,desc:"用蟲洞穿越障礙",
+pts:[{x:.1,y:.5}],tgts:[{x:.9,y:.5,r:24}]},
+{name:"蟲洞網絡",ch:4,maxFields:6,desc:"多個蟲洞嘅組合",
+pts:[{x:.2,y:.2}],tgts:[{x:.8,y:.8,r:22}]},
+{name:"量子隧道",ch:4,maxFields:5,desc:"精準傳送",
+pts:[{x:.15,y:.5}],tgts:[{x:.85,y:.5,r:20}]},
+{name:"蟲洞大師",ch:4,maxFields:6,desc:"蟲洞+引力場組合",
+pts:[{x:.1,y:.1},{x:.1,y:.9}],tgts:[{x:.9,y:.1,r:18},{x:.9,y:.9,r:18}]},
+
+// Chapter 5: Time (20-24)
+{name:"時間減速",ch:5,maxFields:4,desc:"減速區讓粒子慢落嚟",
+pts:[{x:.2,y:.5}],tgts:[{x:.8,y:.5,r:26}]},
+{name:"慢動作",ch:5,maxFields:5,desc:"精準控制速度",
+pts:[{x:.5,y:.1}],tgts:[{x:.5,y:.9,r:24}]},
+{name:"時間迴廊",ch:5,maxFields:5,desc:"減速+軌道組合",
+pts:[{x:.2,y:.3}],tgts:[{x:.8,y:.7,r:22}]},
+{name:"速度控制",ch:5,maxFields:6,desc:"控制粒子速度到達目標",
+pts:[{x:.1,y:.5}],tgts:[{x:.9,y:.5,r:20}]},
+{name:"時間大師",ch:5,maxFields:6,desc:"所有工具嘅組合",
+pts:[{x:.1,y:.3},{x:.1,y:.7}],tgts:[{x:.9,y:.3,r:18},{x:.9,y:.7,r:18}]},
+
+// Chapter 6: Ultimate (25-29)
+{name:"群星亂舞",ch:6,maxFields:8,desc:"四個粒子同時引導",
+pts:[{x:.1,y:.2},{x:.1,y:.4},{x:.1,y:.6},{x:.1,y:.8}],
+tgts:[{x:.9,y:.2,r:16},{x:.9,y:.4,r:16},{x:.9,y:.6,r:16},{x:.9,y:.8,r:16}]},
+{name:"引力交響曲",ch:6,maxFields:7,desc:"精準嘅引力控制",
+pts:[{x:.2,y:.5}],tgts:[{x:.8,y:.2,r:16},{x:.8,y:.5,r:16},{x:.8,y:.8,r:16}]},
+{name:"宇宙迷宮",ch:6,maxFields:8,desc:"穿過重重障礙",
+pts:[{x:.1,y:.5}],tgts:[{x:.9,y:.5,r:18}]},
+{name:"終極挑戰",ch:6,maxFields:8,desc:"所有工具嘅終極測試",
+pts:[{x:.1,y:.2},{x:.1,y:.8}],tgts:[{x:.9,y:.5,r:16}]},
+{name:"重力大師",ch:6,maxFields:10,desc:"成為真正嘅重力大師！",
+pts:[{x:.08,y:.2},{x:.08,y:.4},{x:.08,y:.6},{x:.08,y:.8}],
+tgts:[{x:.92,y:.15,r:14},{x:.92,y:.38,r:14},{x:.92,y:.62,r:14},{x:.92,y:.85,r:14}]}
 ];
 
-// === TOOLS ===
-function setTool(t){
-tool=t;
-document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
-document.getElementById('tool'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('active');
-const tips={attract:'點擊放置引力場（吸引粒子）',repel:'點擊放置斥力場（推開粒子）',orbit:'點擊放置軌道場（環繞）',erase:'點擊移除引力場'};
-document.getElementById('tooltip').textContent=tips[t];
+// === LOAD LEVEL ===
+function loadLvl(i){
+curLvl=i;const L=LEVELS[i];
+fields=[];wormPairs=[];
+particles=L.pts.map(p=>({x:p.x*W,y:p.y*H,vx:0,vy:0,trail:[]}));
+targets=L.tgts.map(t=>({x:t.x*W,y:t.y*H,r:t.r,hit:false}));
+running=false;simTick=0;
+document.getElementById('lvl').textContent='第 '+(i+1)+' 關';
+document.getElementById('max').textContent=L.maxFields;
+document.getElementById('used').textContent='0';
+document.getElementById('goBtn').textContent='▶ 開始';
+document.getElementById('goBtn').classList.remove('running');
+document.getElementById('tip').textContent=L.name+' — '+L.desc;
+unlockTools();
+setTool(0);
 }
 
-function updateStrength(){
-document.getElementById('strengthVal').textContent=document.getElementById('strengthSlider').value;
-}
+function resetP(){running=false;const L=LEVELS[curLvl];
+particles=L.pts.map(p=>({x:p.x*W,y:p.y*H,vx:0,vy:0,trail:[]}));
+targets=L.tgts.map(t=>({x:t.x*W,y:t.y*H,r:t.r,hit:false}));
+simTick=0;
+document.getElementById('goBtn').textContent='▶ 開始';
+document.getElementById('goBtn').classList.remove('running');}
 
-// === CANVAS INPUT ===
-let isDragging=false;
-canvas.addEventListener('mousedown',e=>{isDragging=true;handleInput(e.clientX,e.clientY)});
-canvas.addEventListener('mousemove',e=>{if(isDragging)handleInput(e.clientX,e.clientY)});
-canvas.addEventListener('mouseup',()=>isDragging=false);
-canvas.addEventListener('touchstart',e=>{e.preventDefault();isDragging=true;handleInput(e.touches[0].clientX,e.touches[0].clientY)});
-canvas.addEventListener('touchmove',e=>{e.preventDefault();if(isDragging)handleInput(e.touches[0].clientX,e.touches[0].clientY)});
-canvas.addEventListener('touchend',()=>isDragging=false);
-
-function handleInput(mx,my){
-if(running)return;
-if(tool==='erase'){
-// Remove nearest field
-let minD=40,mini=-1;
-fields.forEach((f,i)=>{const d=Math.hypot(f.x-mx,f.y-my);if(d<minD){minD=d;mini=i}});
-if(mini>=0){fields.splice(mini,1);sfxRepel()}
-}else{
-if(fields.length>=LEVELS[currentLevel].maxFields)return;
-const str=parseInt(document.getElementById('strengthSlider').value);
-fields.push({x:mx,y:my,type:tool,strength:str});
-if(tool==='attract')sfxPlace();
-else if(tool==='repel')sfxRepel();
-else if(tool==='orbit')sfxOrbit();
-}
-}
-
-// === SIMULATION ===
-function toggleSimulation(){
-if(running){resetParticles();return}
-running=true;simTime=0;
-document.getElementById('playBtn').textContent='⏹ 停止';
-document.getElementById('tooltip').textContent='模擬中...';
-}
-
-function resetParticles(){
-running=false;
-if(animId)cancelAnimationFrame(animId);
-document.getElementById('playBtn').textContent='▶ 開始';
-const lvl=LEVELS[currentLevel];
-particles=lvl.particles.map(p=>({x:p.x*W,y:p.y*H,vx:0,vy:0,trail:[]}));
-document.getElementById('tooltip').textContent='點擊放置引力場';
-}
-
-function clearFields(){
-if(running)return;
-fields=[];
-sfxRepel();
-}
-
-function undoField(){
-if(running)return;
-fields.pop();
-sfxTick();
-}
-
-function loadLevel(idx){
-currentLevel=idx;
-const lvl=LEVELS[idx];
-document.getElementById('levelBadge').textContent='關卡 '+(idx+1);
-document.getElementById('wellsMax').textContent=lvl.maxFields;
-fields=[];
-particles=lvl.particles.map(p=>({x:p.x*W,y:p.y*H,vx:0,vy:0,trail:[]}));
-targets=lvl.targets.map(t=>({x:t.x*W,y:t.y*H,r:t.r,collected:false}));
-running=false;
-document.getElementById('playBtn').textContent='▶ 開始';
-document.getElementById('wellsUsed').textContent='0';
-document.getElementById('tooltip').textContent='「'+lvl.name+'」— 點擊放置引力場';
+function toggleGo(){
+if(running){resetP();return}
+running=true;simTick=0;
+document.getElementById('goBtn').textContent='⏹ 停止';
+document.getElementById('goBtn').classList.add('running');
 }
 
 // === PHYSICS ===
 function simulate(){
 if(!running)return;
-simTime++;
+simTick++;
 particles.forEach(p=>{
-// Apply gravity from fields
 fields.forEach(f=>{
-const dx=f.x-p.x,dy=f.y-p.y;
-const dist=Math.max(Math.hypot(dx,dy),20);
-const force=(f.strength*0.5)/(dist*0.01+1);
+const dx=f.x-p.x,dy=f.y-p.y,dist=Math.max(Math.hypot(dx,dy),15);
 const angle=Math.atan2(dy,dx);
-if(f.type==='attract'){
-p.vx+=Math.cos(angle)*force*0.03;
-p.vy+=Math.sin(angle)*force*0.03;
-}else if(f.type==='repel'){
-p.vx-=Math.cos(angle)*force*0.04;
-p.vy-=Math.sin(angle)*force*0.04;
-}else if(f.type==='orbit'){
-// Perpendicular force (creates orbit)
-p.vx+=(-Math.sin(angle))*force*0.03;
-p.vy+=(Math.cos(angle))*force*0.03;
-// Slight attraction
-p.vx+=Math.cos(angle)*force*0.01;
-p.vy+=Math.sin(angle)*force*0.01;
+const str=f.str*0.5/(dist*0.008+1);
+
+if(f.type===0){// Attract
+p.vx+=Math.cos(angle)*str*0.025;p.vy+=Math.sin(angle)*str*0.025;
+}else if(f.type===1){// Repel
+p.vx-=Math.cos(angle)*str*0.035;p.vy-=Math.sin(angle)*str*0.035;
+}else if(f.type===2){// Orbit
+p.vx+=(-Math.sin(angle))*str*0.025;p.vy+=(Math.cos(angle))*str*0.025;
+p.vx+=Math.cos(angle)*str*0.008;p.vy+=Math.sin(angle)*str*0.008;
+}else if(f.type===3){// Black hole - strong attract
+const bhStr=Math.min(str*0.06,2);
+p.vx+=Math.cos(angle)*bhStr;p.vy+=Math.sin(angle)*bhStr;
+if(dist<30){p.vx*=0.5;p.vy*=0.5}
+}else if(f.type===5){// Time slow
+if(dist<80){p.vx*=0.97;p.vy*=0.97}
 }
 });
 
-// Damping
-p.vx*=0.995;p.vy*=0.995;
+// Wormhole teleport
+fields.filter(f=>f.type===4&&f.pairIdx!==undefined).forEach((f,i,arr)=>{
+const pair=fields[f.pairIdx];
+if(pair&&Math.hypot(p.x-f.x,p.y-f.y)<25){
+p.x=pair.x;p.y=pair.y;
+p.vx*=0.5;p.vy*=0.5;
+}
+});
 
-// Speed limit
+p.vx*=0.997;p.vy*=0.997;
 const spd=Math.hypot(p.vx,p.vy);
-if(spd>8){p.vx=p.vx/spd*8;p.vy=p.vy/spd*8}
-
-// Update position
+if(spd>10){p.vx=p.vx/spd*10;p.vy=p.vy/spd*10}
 p.x+=p.vx;p.y+=p.vy;
-
-// Trail
 p.trail.push({x:p.x,y:p.y});
-if(p.trail.length>60)p.trail.shift();
+if(p.trail.length>80)p.trail.shift();
+if(p.x<5){p.x=5;p.vx=Math.abs(p.vx)*0.6}
+if(p.x>W-5){p.x=W-5;p.vx=-Math.abs(p.vx)*0.6}
+if(p.y<5){p.y=5;p.vy=Math.abs(p.vy)*0.6}
+if(p.y>H-5){p.y=H-5;p.vy=-Math.abs(p.vy)*0.6}
 
-// Boundary bounce
-if(p.x<10){p.x=10;p.vx=Math.abs(p.vx)*0.7}
-if(p.x>W-10){p.x=W-10;p.vx=-Math.abs(p.vx)*0.7}
-if(p.y<10){p.y=10;p.vy=Math.abs(p.vy)*0.7}
-if(p.y>H-10){p.y=H-10;p.vy=-Math.abs(p.vy)*0.7}
-
-// Check target collection
-targets.forEach(t=>{
-if(!t.collected&&Math.hypot(p.x-t.x,p.y-t.y)<t.r+5){
-t.collected=true;
-sfxCollect();
-}
-});
+targets.forEach(t=>{if(!t.hit&&Math.hypot(p.x-t.x,p.y-t.y)<t.r+6){t.hit=true;sfxCollect()}});
 });
 
-// Check win
-if(targets.every(t=>t.collected)){
-running=false;
-sfxWin();
-showComplete();
-return;
-}
-
-// Timeout
-if(simTime>MAX_SIM_TIME){
-running=false;
-document.getElementById('playBtn').textContent='▶ 開始';
-document.getElementById('tooltip').textContent='⏰ 時間到！試下調整引力場';
-}
+if(targets.every(t=>t.hit)){running=false;sfxWin();setTimeout(showWin,400);return}
+if(simTick>720){running=false;sfxFail();document.getElementById('tip').textContent='⏰ 時間到！調整引力場再試';}
 }
 
 // === RENDER ===
 function render(){
-ctx.clearRect(0,0,W,H);
-
-// Background grid
-ctx.strokeStyle='rgba(79,195,247,0.05)';
-ctx.lineWidth=1;
-for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
-for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+cx.clearRect(0,0,W,H);
+// Grid
+cx.strokeStyle='rgba(79,195,247,0.03)';cx.lineWidth=1;
+for(let x=0;x<W;x+=40){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke()}
+for(let y=0;y<H;y+=40){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
 
 // Targets
 targets.forEach(t=>{
-const alpha=t.collected?0.2:0.6+Math.sin(Date.now()*0.003)*0.2;
-ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);
-ctx.strokeStyle=`rgba(255,215,0,${alpha})`;ctx.lineWidth=2;ctx.stroke();
-if(!t.collected){
-ctx.beginPath();ctx.arc(t.x,t.y,t.r*0.5,0,Math.PI*2);
-ctx.fillStyle='rgba(255,215,0,0.15)';ctx.fill();
-// Glow
-const grd=ctx.createRadialGradient(t.x,t.y,0,t.x,t.y,t.r*2);
-grd.addColorStop(0,'rgba(255,215,0,0.1)');grd.addColorStop(1,'transparent');
-ctx.fillStyle=grd;ctx.fillRect(t.x-t.r*2,t.y-t.r*2,t.r*4,t.r*4);
+const a=t.hit?0.15:0.5+Math.sin(Date.now()*0.003)*0.2;
+cx.beginPath();cx.arc(t.x,t.y,t.r,0,Math.PI*2);
+cx.strokeStyle=`rgba(255,215,0,${a})`;cx.lineWidth=2;cx.stroke();
+if(!t.hit){
+const g=cx.createRadialGradient(t.x,t.y,0,t.x,t.y,t.r*2.5);
+g.addColorStop(0,'rgba(255,215,0,0.08)');g.addColorStop(1,'transparent');
+cx.fillStyle=g;cx.fillRect(t.x-t.r*2.5,t.y-t.r*2.5,t.r*5,t.r*5);
+cx.beginPath();cx.arc(t.x,t.y,t.r*0.4,0,Math.PI*2);
+cx.fillStyle='rgba(255,215,0,0.15)';cx.fill();
 }
 });
 
 // Fields
 fields.forEach(f=>{
-const color=f.type==='attract'?'79,195,247':f.type==='repel'?'244,67,54':'156,39,176';
-const r=20+f.strength*0.3;
+const colors={0:'79,195,247',1:'244,67,54',2:'156,39,176',3:'255,255,255',4:'0,230,118',5:'255,193,7'};
+const c=colors[f.type]||'255,255,255';
+const r=f.type===3?25:f.type===5?35:20+f.str*0.25;
+
 // Glow
-const grd=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,r*2);
-grd.addColorStop(0,`rgba(${color},0.2)`);grd.addColorStop(1,'transparent');
-ctx.fillStyle=grd;ctx.fillRect(f.x-r*2,f.y-r*2,r*4,r*4);
+const g=cx.createRadialGradient(f.x,f.y,0,f.x,f.y,r*2.5);
+g.addColorStop(0,`rgba(${c},0.15)`);g.addColorStop(1,'transparent');
+cx.fillStyle=g;cx.fillRect(f.x-r*2.5,f.y-r*2.5,r*5,r*5);
+
 // Ring
-ctx.beginPath();ctx.arc(f.x,f.y,r,0,Math.PI*2);
-ctx.strokeStyle=`rgba(${color},0.6)`;ctx.lineWidth=2;ctx.stroke();
+cx.beginPath();cx.arc(f.x,f.y,r,0,Math.PI*2);
+cx.strokeStyle=`rgba(${c},0.5)`;cx.lineWidth=2;cx.stroke();
+
+// Pulse
+const pulse=0.5+Math.sin(Date.now()*0.004+f.x)*0.3;
+cx.beginPath();cx.arc(f.x,f.y,r*(0.7+pulse*0.4),0,Math.PI*2);
+cx.strokeStyle=`rgba(${c},${0.08+pulse*0.12})`;cx.lineWidth=1;cx.stroke();
+
 // Center
-ctx.beginPath();ctx.arc(f.x,f.y,4,0,Math.PI*2);
-ctx.fillStyle=`rgba(${color},0.8)`;ctx.fill();
-// Pulse animation
-const pulse=0.5+Math.sin(Date.now()*0.005)*0.3;
-ctx.beginPath();ctx.arc(f.x,f.y,r*(0.8+pulse*0.3),0,Math.PI*2);
-ctx.strokeStyle=`rgba(${color},${0.1+pulse*0.15})`;ctx.lineWidth=1;ctx.stroke();
+cx.beginPath();cx.arc(f.x,f.y,3,0,Math.PI*2);
+cx.fillStyle=`rgba(${c},0.7)`;cx.fill();
+
+// Black hole effect
+if(f.type===3){
+for(let i=0;i<3;i++){
+const ri=r+i*8;
+cx.beginPath();cx.arc(f.x,f.y,ri,0,Math.PI*2);
+cx.strokeStyle=`rgba(${c},${0.1-i*0.03})`;cx.lineWidth=1;cx.stroke();
+}
+}
+
+// Wormhole link line
+if(f.type===4&&f.pairIdx!==undefined){
+const pair=fields[f.pairIdx];
+if(pair){
+cx.beginPath();cx.setLineDash([4,4]);cx.moveTo(f.x,f.y);cx.lineTo(pair.x,pair.y);
+cx.strokeStyle='rgba(0,230,118,0.2)';cx.lineWidth=1;cx.stroke();cx.setLineDash([]);
+}
+}
 });
 
 // Particles
@@ -460,79 +441,65 @@ particles.forEach(p=>{
 // Trail
 if(p.trail.length>1){
 for(let i=1;i<p.trail.length;i++){
-const alpha=i/p.trail.length*0.4;
-ctx.beginPath();ctx.moveTo(p.trail[i-1].x,p.trail[i-1].y);ctx.lineTo(p.trail[i].x,p.trail[i].y);
-ctx.strokeStyle=`rgba(79,195,247,${alpha})`;ctx.lineWidth=2;ctx.stroke();
+const alpha=i/p.trail.length*0.35;
+cx.beginPath();cx.moveTo(p.trail[i-1].x,p.trail[i-1].y);cx.lineTo(p.trail[i].x,p.trail[i].y);
+cx.strokeStyle=`rgba(79,195,247,${alpha})`;cx.lineWidth=1.5;cx.stroke();
 }
 }
-// Particle
-const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,8);
-grd.addColorStop(0,'rgba(255,255,255,0.9)');grd.addColorStop(0.5,'rgba(79,195,247,0.6)');grd.addColorStop(1,'transparent');
-ctx.fillStyle=grd;ctx.beginPath();ctx.arc(p.x,p.y,8,0,Math.PI*2);ctx.fill();
+// Glow
+const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,12);
+g.addColorStop(0,'rgba(255,255,255,0.8)');g.addColorStop(0.4,'rgba(79,195,247,0.5)');g.addColorStop(1,'transparent');
+cx.fillStyle=g;cx.beginPath();cx.arc(p.x,p.y,12,0,Math.PI*2);cx.fill();
 });
 
-// Update wells count
-document.getElementById('wellsUsed').textContent=fields.length;
+document.getElementById('used').textContent=fields.filter(f=>f.type!==4).length;
+requestAnimationFrame(render);
 }
 
-// === GAME LOOP ===
-function gameLoop(){
-if(running)simulate();
-render();
-animId=requestAnimationFrame(gameLoop);
+// === WIN ===
+function showWin(){
+const L=LEVELS[curLvl];
+const used=fields.filter(f=>f.type!==4).length;
+let stars=1;if(used<=L.maxFields*0.6)stars=3;else if(used<=L.maxFields*0.8)stars=2;
+progress[curLvl]=Math.max(progress[curLvl],stars);
+try{localStorage.setItem('gp_progress',JSON.stringify(progress))}catch(e){}
+const totalStars=progress.reduce((a,b)=>a+b,0);
+document.getElementById('starCount').textContent=totalStars;
+document.getElementById('winStars').textContent='⭐'.repeat(stars);
+document.getElementById('winMsg').textContent=`「${L.name}」— 用咗 ${used} 個引力場（最多 ${L.maxFields}）`;
+document.getElementById('win').classList.add('show');
+}
+
+function nextLvl(){
+document.getElementById('win').classList.remove('show');
+if(curLvl<LEVELS.length-1)loadLvl(curLvl+1);
+else{showMenu();
+document.getElementById('menuBox').innerHTML='<h1>🎉 恭喜！</h1><div class="subtitle">你已經成為重力大師！</div><p>完成咗全部 30 關！</p><button class="menu-btn" onclick="location.reload()">再玩一次</button>';}
 }
 
 // === MENU ===
-function showMenu(){
-document.getElementById('menuOverlay').classList.remove('hide');
-document.getElementById('completeOverlay').classList.remove('show');
+function showMenu(){document.getElementById('menu').classList.remove('hide');document.getElementById('win').classList.remove('show')}
+function startGame(){document.getElementById('menu').classList.add('hide');loadLvl(0);render()}
+function showLevels(){
+const totalStars=progress.reduce((a,b)=>a+b,0);
+let h='<h1>選擇關卡</h1><div class="subtitle">⭐ '+totalStars+'/90</div><div class="level-grid">';
+const chNames=['基礎','軌道','黑洞','蟲洞','時間','大師'];
+for(let i=0;i<30;i++){
+const ch=Math.floor(i/5);
+if(i%5===0)h+=`<div style="grid-column:1/-1;text-align:left;color:#4fc3f7;font-size:11px;margin-top:8px">第${ch+1}章：${chNames[ch]}</div>`;
+const locked=i>0&&progress[i-1]===0&&i>Math.max(...progress.map((s,j)=>s>0?j:0).filter(j=>j>=0))+1;
+const stars=progress[i];
+const cls=locked?'locked':i===curLvl?'current':'';
+const starStr=stars?'⭐'.repeat(stars):'';
+h+=`<div class="lvl-cell ${cls}" onclick="selectLvl(${i})">${i+1}<div class="stars">${starStr}</div></div>`;
 }
-
-function startGame(){
-document.getElementById('menuOverlay').classList.add('hide');
-loadLevel(0);
-gameLoop();
+h+='</div><button class="menu-btn sec" onclick="showMenu()">返回</button>';
+document.getElementById('menuBox').innerHTML=h;
 }
+function selectLvl(i){document.getElementById('menu').classList.add('hide');loadLvl(i);render()}
 
-function showLevelSelect(){
-// Simple level select via menu
-const box=document.querySelector('.menu-box');
-box.innerHTML='<h1>選擇關卡</h1><div class="subtitle">LEVEL SELECT</div>'+
-LEVELS.map((l,i)=>`<button class="menu-btn" style="margin:4px;width:80%" onclick="selectLevel(${i})">關卡 ${i+1}：${l.name}</button>`).join('')+
-'<br><button class="menu-btn secondary" style="margin-top:12px" onclick="showMenu()">返回</button>';
-}
-
-function selectLevel(idx){
-document.getElementById('menuOverlay').classList.add('hide');
-loadLevel(idx);
-if(!animId)gameLoop();
-}
-
-function showComplete(){
-const lvl=LEVELS[currentLevel];
-const used=fields.length;
-const max=lvl.maxFields;
-let stars='⭐';
-if(used<=max*0.5)stars='⭐⭐⭐';
-else if(used<=max*0.75)stars='⭐⭐';
-
-document.getElementById('starsDisplay').textContent=stars;
-document.getElementById('completeMsg').textContent=`「${lvl.name}」— 用咗 ${used} 個引力場（最多 ${max}）`;
-document.getElementById('completeOverlay').classList.add('show');
-}
-
-function nextLevel(){
-document.getElementById('completeOverlay').classList.remove('show');
-if(currentLevel<LEVELS.length-1){
-loadLevel(currentLevel+1);
-}else{
-showMenu();
-document.querySelector('.menu-box').innerHTML='<h1>🎉 恭喜！</h1><div class="subtitle">你已經成為重力大師！</div><p>完成咗所有關卡！</p><button class="menu-btn" onclick="location.reload()">再玩一次</button>';
-}
-}
-
-// Init
-loadLevel(0);
+// === STAR COUNTER ===
+document.getElementById('starCount').textContent=progress.reduce((a,b)=>a+b,0);
 </script>
 </body>
 </html>
